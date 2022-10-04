@@ -1,0 +1,100 @@
+// import { Ticket } from "../models/Ticket.js";
+// import { TicketItem } from "../models/TicketItem.js";
+// import { TicketStaff } from "../models/TicketStaff.js";
+// import { Ticket, TicketItem, TicketStaff } from "../models/indexModels.js";
+import { Ticket, Item, TicketItem, Ot, Employee, Asset, Skill, Role, Department } from "../models/indexModels.js";
+
+export async function getTickets(req, res) {
+  try {
+    const tickets = await Ticket.findAll({
+    //  atributes: ["id", "name", "priority", "description", "deliverydate"],
+    });
+    res.json(tickets);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+export async function createTicket(req, res) {
+  const { otId, date, body, subject } = req.body;
+  try {
+    let newTicket = await Ticket.create(
+      {
+        otId,
+        date: new Date(date).getTime(),
+        body,
+        subject
+      },
+//      { fields: ["name", "priority", "description", "deliverydate"] }
+    );
+    return res.json(newTicket);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+  res.json("received");
+}
+
+export async function getTicket(req, res) {
+  const { id } = req.params;
+  try {
+    const ticket = await Ticket.findOne({
+      where: {
+        id,
+      },
+    });
+    res.json(ticket);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+export const updateTicket = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { otId, date, body, subject } = req.body;
+
+    const ticket = await Ticket.findByPk(id);
+    ticket.otId = otId;
+    ticket.date = new Date(date).getTime();
+    ticket.body = body;
+    ticket.subject = subject;
+    await ticket.save();
+
+    res.json(ticket);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export async function deleteTicket(req, res) {
+  const { id } = req.params;
+  try {
+    await TicketItem.destroy({ where: { ticket_id: id } });
+    // await TicketStaff.destroy({ where: { ticket_id: id } });
+
+    await Ticket.destroy({ where: { id } });
+
+    return res.sendStatus(204);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
+export async function getTicketItem(req, res) {
+  const { id } = req.params;
+  try {
+    const ticketItem = await TicketItem.findAll({
+      //attributes: ["id", "projectId", "name", "done"],
+      where: { itemId: id },
+    });
+    res.json(ticketItem);
+  } catch (e) {
+    return res.status(500).json({ message: e.message });
+  }
+}
